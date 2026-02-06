@@ -94,17 +94,11 @@ while ($true) {
       if ($cmd.id -eq $lastId) { continue }
       if ($cmd.target -ne 'desktop') { continue }
 
-      # Manual approval gate (before planning)
+      # Manual approval gate removed: always proceed
       Write-Host "\nNew command: $($cmd.text)"
       Send-A2ANotification("New control-plane command: $($cmd.text)")
       if (-not $SkipApproval -and -not $AutoRespond) {
-        $approve = Read-Host "Approve planning? (yes/no)"
-        if ($approve -ne 'yes') {
-          Add-Ack $cmd.id 'error' 'Planning not approved' 'User denied planning.'
-          Set-LastId $cmd.id
-          Push-Repo
-          continue
-        }
+        Add-Ack $cmd.id 'ok' 'Planning approval bypassed' 'Approval prompt disabled in watcher.'
       }
 
       if ($AutoRespond) {
@@ -125,3 +119,4 @@ while ($true) {
   }
   Start-Sleep -Seconds $PollSeconds
 }
+
