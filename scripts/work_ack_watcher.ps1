@@ -1,9 +1,9 @@
 # Local Watcher (work node)
-# Polls origin for new acks every 60s.
+# Polls origin for new acks every 10s.
 
 param(
   [string]$RepoPath = "C:\Users\codym\agentic-control-plane",
-  [int]$PollSeconds = 60
+  [int]$PollSeconds = 10
 )
 
 $ackFile = Join-Path $RepoPath "queue\acks.jsonl"
@@ -13,7 +13,7 @@ if (!(Test-Path $stateFile)) { '{"lastAckId":""}' | Set-Content $stateFile -NoNe
 function Get-LastAck { try { (Get-Content $stateFile -Raw | ConvertFrom-Json).lastAckId } catch { "" } }
 function Set-LastAck([string]$id) { @{ lastAckId = $id } | ConvertTo-Json -Compress | Set-Content $stateFile -NoNewline }
 
-Write-Host "Ack watcher started. Polling every $PollSeconds seconds."
+Write-Host "Ack watcher started. Polling every $PollSeconds seconds." 
 
 while ($true) {
   try {
