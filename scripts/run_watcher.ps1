@@ -5,7 +5,7 @@ param(
 $watcher = "C:\Users\codym\agentic-control-plane\scripts\desktop_watcher.ps1"
 $codex = "C:\nvm4w\nodejs\codex.ps1"
 
-& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $watcher `
+& powershell.exe -WindowStyle Hidden -NoProfile -ExecutionPolicy Bypass -File $watcher `
   -PollSeconds $PollSeconds `
   -AutoRespond `
   -SkipApproval `
