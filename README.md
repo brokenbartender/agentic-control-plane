@@ -25,6 +25,18 @@ Run `scripts/desktop_watcher.ps1` on the desktop. It will:
 - write acks
 - `git push`
 
+## Laptop Watcher (same setup)
+On the laptop, set up the same watcher so it can receive its own commands:
+```powershell
+git clone https://github.com/brokenbartender/agentic-control-plane.git C:\Users\<you>\agentic-control-plane
+```
+Then create a scheduled task (poll every 60s):
+```powershell
+schtasks /Create /TN "AgenticControlPlaneWatcher" /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\<you>\agentic-control-plane\scripts\desktop_watcher.ps1 -PollSeconds 60" /SC ONLOGON /RL HIGHEST /F
+schtasks /Run /TN "AgenticControlPlaneWatcher"
+```
+Make sure commands in `queue/commands.jsonl` use `target:"laptop"` for that machine.
+
 ## Safety & Control
 - Manual approval required before planning and before any destructive action.
 - All actions logged in acks.
