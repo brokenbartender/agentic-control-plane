@@ -1,0 +1,23 @@
+# A2A Mesh
+
+Use a shared secret on both nodes.
+
+```
+AGENTIC_A2A_LISTEN=true
+AGENTIC_A2A_HOST=0.0.0.0
+AGENTIC_A2A_PORT=9451
+AGENTIC_A2A_SHARED_SECRET=<shared>
+AGENTIC_A2A_PEERS=desktop=100.111.161.110:9451,work=100.98.190.75:9451
+```
+
+Desktop:
+```
+AGENTIC_NODE_NAME=desktop
+AGENTIC_AUTONOMY_LEVEL=supervised
+```
+
+Work:
+```
+AGENTIC_NODE_NAME=work
+AGENTIC_AUTONOMY_LEVEL=supervised
+```
