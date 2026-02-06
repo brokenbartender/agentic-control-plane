@@ -1,0 +1,1 @@
+{"id":"9b388067-2ed2-4413-bea9-cd797e9698eb","target":"desktop","created":"2026-02-05T23:58:25.2125728-05:00","type":"instruction","text":"Sync AgenticConsole + Enterprise + CaseCompanion + codex-control-stack repos (git pull). Report git status for each, current Node and Python versions, and confirm AgenticConsole A2A is listening on port 9451."}
