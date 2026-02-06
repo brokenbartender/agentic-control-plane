@@ -56,9 +56,33 @@ On the laptop, set up the same watcher so it can receive its own commands:
 ```powershell
 git clone https://github.com/brokenbartender/agentic-control-plane.git C:\Users\<you>\agentic-control-plane
 ```
+Find the Codex CLI path:
+```powershell
+(Get-Command codex).Source
+```
+
+Create `scripts\run_watcher.ps1` on the laptop (update the codex path):
+```powershell
+param(
+  [int]$PollSeconds = 10
+)
+
+$watcher = "C:\Users\<you>\agentic-control-plane\scripts\desktop_watcher.ps1"
+$codex = "C:\Users\<you>\AppData\Roaming\npm\codex.ps1"
+
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $watcher `
+  -PollSeconds $PollSeconds `
+  -AutoRespond `
+  -SkipApproval `
+  -CodexExecPath $codex `
+  -A2AHost 127.0.0.1 `
+  -A2APort 9451 `
+  -A2ASharedSecret change_me
+```
+
 Then create a scheduled task (poll every 10s):
 ```powershell
-schtasks /Create /TN "AgenticControlPlaneWatcher" /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\<you>\agentic-control-plane\scripts\desktop_watcher.ps1 -PollSeconds 10" /SC ONLOGON /RL HIGHEST /F
+schtasks /Create /TN "AgenticControlPlaneWatcher" /TR "powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\<you>\agentic-control-plane\scripts\run_watcher.ps1" /SC ONLOGON /RL HIGHEST /F
 schtasks /Run /TN "AgenticControlPlaneWatcher"
 ```
 Make sure commands in `queue/commands.jsonl` use `target:"laptop"` for that machine.
