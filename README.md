@@ -25,6 +25,18 @@ Run `scripts/desktop_watcher.ps1` on the desktop. It will:
 - write acks
 - `git push`
 
+### CLI Notifications (A2A)
+If Agentic Console is running with A2A enabled, the watcher can notify the CLI on new commands.
+Defaults:
+- Host: `127.0.0.1`
+- Port: `9451`
+- Shared secret: empty string (set this to match your `.env`)
+
+Example (desktop):
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\codym\agentic-control-plane\scripts\desktop_watcher.ps1 -PollSeconds 60 -A2AHost 127.0.0.1 -A2APort 9451 -A2ASharedSecret change_me
+```
+
 ## Laptop Watcher (same setup)
 On the laptop, set up the same watcher so it can receive its own commands:
 ```powershell

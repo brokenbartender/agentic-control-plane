@@ -3,7 +3,12 @@
 
 param(
   [string]$RepoPath = "C:\Users\codym\agentic-control-plane",
-  [int]$PollSeconds = 300
+  [int]$PollSeconds = 300,
+  [string]$A2AHost = "127.0.0.1",
+  [int]$A2APort = 9451,
+  [string]$A2ASharedSecret = "",
+  [string]$A2ASender = "control-plane",
+  [string]$A2AReceiver = "local"
 )
 
 $queueDir = Join-Path $RepoPath "queue"
@@ -39,6 +44,21 @@ function Push-Repo {
   git -C $RepoPath push | Out-Null
 }
 
+function Send-A2ANotification([string]$message) {
+  try {
+    $payload = @{
+      sender = $A2ASender
+      receiver = $A2AReceiver
+      message = $message
+      shared_secret = $A2ASharedSecret
+    } | ConvertTo-Json -Compress
+    $uri = "http://$A2AHost`:$A2APort/a2a"
+    Invoke-RestMethod -Method Post -Uri $uri -Body $payload -ContentType "application/json" | Out-Null
+  } catch {
+    Write-Host "A2A notify failed: $($_.Exception.Message)"
+  }
+}
+
 Write-Host "Desktop watcher started. Polling every $PollSeconds seconds." 
 
 while ($true) {
@@ -54,6 +74,7 @@ while ($true) {
 
       # Manual approval gate (before planning)
       Write-Host "\nNew command: $($cmd.text)"
+      Send-A2ANotification("New control-plane command: $($cmd.text)")
       $approve = Read-Host "Approve planning? (yes/no)"
       if ($approve -ne 'yes') {
         Add-Ack $cmd.id 'error' 'Planning not approved' 'User denied planning.'
