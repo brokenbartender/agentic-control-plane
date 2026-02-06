@@ -8,7 +8,10 @@ param(
   [int]$A2APort = 9451,
   [string]$A2ASharedSecret = "",
   [string]$A2ASender = "control-plane",
-  [string]$A2AReceiver = "local"
+  [string]$A2AReceiver = "local",
+  [switch]$AutoRespond = $false,
+  [string]$CodexExecPath = "codex",
+  [switch]$SkipApproval = $false
 )
 
 $queueDir = Join-Path $RepoPath "queue"
@@ -59,6 +62,25 @@ function Send-A2ANotification([string]$message) {
   }
 }
 
+function Invoke-CodexExec([string]$prompt) {
+  $output = ""
+  try {
+    $output = & $CodexExecPath exec $prompt 2>&1 | Out-String
+    $exit = $LASTEXITCODE
+    return @{
+      ok = ($exit -eq 0)
+      output = $output.Trim()
+      exit = $exit
+    }
+  } catch {
+    return @{
+      ok = $false
+      output = $_.Exception.Message
+      exit = 1
+    }
+  }
+}
+
 Write-Host "Desktop watcher started. Polling every $PollSeconds seconds." 
 
 while ($true) {
@@ -75,18 +97,26 @@ while ($true) {
       # Manual approval gate (before planning)
       Write-Host "\nNew command: $($cmd.text)"
       Send-A2ANotification("New control-plane command: $($cmd.text)")
-      $approve = Read-Host "Approve planning? (yes/no)"
-      if ($approve -ne 'yes') {
-        Add-Ack $cmd.id 'error' 'Planning not approved' 'User denied planning.'
-        Set-LastId $cmd.id
-        Push-Repo
-        continue
+      if (-not $SkipApproval -and -not $AutoRespond) {
+        $approve = Read-Host "Approve planning? (yes/no)"
+        if ($approve -ne 'yes') {
+          Add-Ack $cmd.id 'error' 'Planning not approved' 'User denied planning.'
+          Set-LastId $cmd.id
+          Push-Repo
+          continue
+        }
       }
 
-      # Placeholder for Codex CLI execution
-      # TODO: replace with actual Codex CLI invocation once command is confirmed
-      # Example: codex chat --prompt $cmd.text
-      Add-Ack $cmd.id 'ok' 'Command received' 'Execution not wired: Codex CLI command not configured.'
+      if ($AutoRespond) {
+        $result = Invoke-CodexExec $cmd.text
+        if ($result.ok) {
+          Add-Ack $cmd.id 'ok' 'Codex response generated' $result.output
+        } else {
+          Add-Ack $cmd.id 'error' 'Codex exec failed' ("exit=" + $result.exit + "`n" + $result.output)
+        }
+      } else {
+        Add-Ack $cmd.id 'ok' 'Command received' 'Execution not wired: Codex exec not enabled.'
+      }
       Set-LastId $cmd.id
       Push-Repo
     }
